@@ -15,14 +15,12 @@
     "@wyw-in-js/babel-preset": "^0.8.0",
     "maplibre-gl": "^5.15.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-leaflet": "^5.0.0"
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@babel/preset-react": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
     "@eslint/js": "^9.39.1",
-    "@types/leaflet": "^1.9.21",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
