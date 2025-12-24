@@ -2,8 +2,6 @@ import { css } from '@linaria/core';
 import Map from './Map.tsx'
 
 function App() {
-
-
   return (
     <main className={css`
       display: grid;
