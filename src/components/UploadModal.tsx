@@ -4,22 +4,28 @@ import { useRef } from 'react';
 export default function UploadModal({ handleCloseModal, clickMarker }) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   return (
-    <div className={css`
-            z-index:999;
+    <div 
+      onClick={handleCloseModal}
+      className={css`
+            z-index: 999;
             position: fixed;
             width: 100%;
             height: 100%;
             background-color: rgba(0,0,0,0.4); 
             display: grid;
             place-content: centre;
-          `}>
-      <div className={css`
+    `}
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className={css`
+              z-index: 9999;
               background-color: #fff;
               padding: 1em;
               margin: auto auto;
               min-width: 20em;
             `}>
-        <button onClick={handleCloseModal} className={css`float:right;`}>x</button>
+        <button onClick={handleCloseModal} className={css`float:right;`}>&#10005;</button>
         <p>Upload Sunset</p>
         <form onSubmit={async (e) => {
           e.preventDefault();
