@@ -1,9 +1,11 @@
 import { css } from '@linaria/core';
-import maplibregl from 'maplibre-gl';
+import maplibregl, { Popup } from 'maplibre-gl';
 import { Marker } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef, useState } from 'react';
 import UploadModal from './UploadModal';
+import SunsetPopup from './SunsetPopup';
+import { createRoot } from 'react-dom/client';
 
 export default function Map() {
   const mapRef = useRef<null | maplibregl.Map>(null);
@@ -23,43 +25,32 @@ export default function Map() {
     // load initial points
     map.on('load', async () => {
       // TODO
-      // const res = await fetch('/sunsets')
-      // const data = await res.json();
+      const res = await fetch('/api/sunsets')
+      const data = await res.json();
 
       // // Add an image to use as a custom marker
-      // const image = await map.loadImage('https://maplibre.org/maplibre-gl-js/docs/assets/custom_marker.png');
-      // map.addImage('custom-marker', image.data);
-      // map.addSource('sunsets', {
-      //   'type': 'geojson',
-      //   'data': {
-      //     'type': 'FeatureCollection',
-      //     'features': [
-      //       {
-      //         'type': 'Feature',
-      //         'properties': {},
-      //         'geometry': {
-      //           'type': 'Point',
-      //           'coordinates': [151.2057, -33.8727]
-      //         }
-      //       }
-      //     ]
-      //   }
-      // });
-      //
-      // // make new layer for markers 
-      // map.addLayer({
-      //   id: 'markers',
-      //   type: 'symbol',
-      //   source: 'sunsets',
-      //   layout: {
-      //     'icon-image': 'custom-marker'
-      //   }
-      // })
+      data.features.forEach((marker: any) => {
+        // popup for marker
+        const popupNode = document.createElement('div');
+        const root = createRoot(popupNode);
+        root.render(<SunsetPopup id={marker.properties.id} />);
+
+        const p = new Popup().setDOMContent(popupNode);
+        // add marker to map
+        new maplibregl.Marker()
+          .setLngLat(marker.geometry.coordinates)
+          .addTo(map)
+          .setPopup(p)
+      });
 
       // EVENT HANDLERS
       // adds event handler to create a popup on click
 
       map.on('click', (e) => {
+        const target = e.originalEvent.target as Element;
+        if (target.closest('.maplibregl-popup') || target.closest('.maplibregl-marker')) {
+          return;
+        }
         if (clickMarkerRef.current) {
           clickMarkerRef.current.remove();
         }
