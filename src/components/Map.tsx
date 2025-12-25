@@ -3,10 +3,13 @@ import maplibregl from 'maplibre-gl';
 import { Marker } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef, useState } from 'react';
+import UploadModal from './UploadModal';
 
 export default function Map() {
   const mapRef = useRef<null | maplibregl.Map>(null);
+  const clickMarkerRef = useRef<null | maplibregl.Marker>(null);
   const [clickMarker, setClickMarker] = useState<null | maplibregl.Marker>(null);
+  const [displayUploadModal, setDisplayUploadModal] = useState(false);
   useEffect(() => {
     const map = new maplibregl.Map({
       container: 'map', // container id
@@ -57,13 +60,16 @@ export default function Map() {
       // adds event handler to create a popup on click
 
       map.on('click', (e) => {
-        if (clickMarker) {
-          clickMarker.remove();
+        if (clickMarkerRef.current) {
+          clickMarkerRef.current.remove();
         }
 
-        setClickMarker(new Marker()
+        const newMarker = new Marker()
           .setLngLat(e.lngLat)
-          .addTo(map))
+          .addTo(map);
+
+        clickMarkerRef.current = newMarker;
+        setClickMarker(newMarker);
       })
 
       // // Change the cursor to a pointer when the it enters a feature in the 'markers' layer.
@@ -79,14 +85,18 @@ export default function Map() {
 
 
     return () => {
-      if (clickMarker) clickMarker.remove();
+      if (clickMarkerRef.current) clickMarkerRef.current.remove();
       if (mapRef.current) mapRef.current.remove();
       mapRef.current = null;
     }
   }, [])
 
-  function handleAddSunset() {
-    console.log('handled')
+  function handleShowModal() {
+    setDisplayUploadModal(true);
+  }
+
+  function handleCloseModal() {
+    setDisplayUploadModal(false);
   }
 
   return (
@@ -94,11 +104,16 @@ export default function Map() {
     <div>
       {
         clickMarker && (
-          <button onClick={handleAddSunset} className={css`
+          <button onClick={handleShowModal} className={css`
             position: absolute;
             z-index: 999;
             right: 0;
-          `}>test</button>
+          `}>Add Sunset Image Here</button>
+        )
+      }
+      {
+        displayUploadModal && (
+          <UploadModal handleCloseModal={handleCloseModal} clickMarker={clickMarker} />
         )
       }
       <div id="map" className={css`

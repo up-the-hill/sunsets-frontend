@@ -1,5 +1,5 @@
 import { css } from '@linaria/core';
-import Map from './Map.tsx'
+import Map from './components/Map';
 
 function App() {
   return (
@@ -9,8 +9,7 @@ function App() {
       grid-template-rows: 5fr 95fr;
     `}>
       <h1>sunsets</h1>
-
-      <Map></Map>
+      <Map />
     </main>
   )
 }
