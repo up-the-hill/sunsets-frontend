@@ -4,7 +4,7 @@ import { useRef } from 'react';
 export default function UploadModal({ handleCloseModal, clickMarker }) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   return (
-    <div 
+    <div
       onClick={handleCloseModal}
       className={css`
             z-index: 999;
@@ -16,7 +16,7 @@ export default function UploadModal({ handleCloseModal, clickMarker }) {
             place-content: centre;
     `}
     >
-      <div 
+      <div
         onClick={(e) => e.stopPropagation()}
         className={css`
               z-index: 9999;
@@ -32,8 +32,8 @@ export default function UploadModal({ handleCloseModal, clickMarker }) {
           const formData = new FormData();
           if (clickMarker) {
             const { lng, lat } = clickMarker.getLngLat();
-            formData.append('longitude', lng.toPrecision(17));
-            formData.append('latitude', lat.toPrecision(17));
+            formData.append('longitude', lng.toPrecision(8));
+            formData.append('latitude', lat.toPrecision(8));
           }
           const clientUrlRes = await fetch('/api/sunsets', {
             method: 'POST',
