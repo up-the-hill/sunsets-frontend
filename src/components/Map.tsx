@@ -37,6 +37,7 @@ async function loadPoints(map: maplibregl.Map) {
 
 export default function Map() {
   const [mapInstance, setMapInstance] = useState<null | maplibregl.Map>(null);
+  const [zoomTooLow, setZoomTooLow] = useState(false);
   const clickMarkerRef = useRef<null | maplibregl.Marker>(null);
   const [clickMarker, setClickMarker] = useState<null | maplibregl.Marker>(null);
   const [displayUploadModal, setDisplayUploadModal] = useState(false);
@@ -74,7 +75,12 @@ export default function Map() {
 
       map.on('moveend', () => {
         const debouncedLoadPoints = debounce(loadPoints, 1000);
-        debouncedLoadPoints(map);
+        if (map.getZoom() > 5) {
+          debouncedLoadPoints(map);
+          setZoomTooLow(false)
+        } else {
+          setZoomTooLow(true)
+        }
       })
 
     })
@@ -97,6 +103,9 @@ export default function Map() {
     <div>
       {IS_DEV && (
         <Debug map={mapInstance}></Debug>
+      )}
+      {zoomTooLow && (
+        <div className={css`z-index: 999; position: absolute;`}>zoom in further to see points!</div>
       )}
       {
         clickMarker && (
