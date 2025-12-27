@@ -7,8 +7,33 @@ import UploadModal from './UploadModal';
 import SunsetPopup from './SunsetPopup';
 import { createRoot } from 'react-dom/client';
 import Debug from './Debug';
+import debounce from 'lodash.debounce';
 
 const IS_DEV = import.meta.env.DEV; // replaced at build-time
+
+async function loadPoints(map: maplibregl.Map) {
+  const res = await fetch(`/api/sunsets?centre=${map.getCenter().lng},${map.getCenter().lat}&zoom=${map.getZoom()}`)
+  const data = await res.json();
+
+  // Add an image to use as a custom marker
+  data.features.forEach((marker: any) => {
+    // popup for marker
+    const popupNode = document.createElement('div');
+    const root = createRoot(popupNode);
+
+    const p = new Popup().setDOMContent(popupNode);
+
+    p.on('open', () => {
+      root.render(<SunsetPopup id={marker.properties.id} />);
+    });
+
+    // add marker to map
+    new maplibregl.Marker()
+      .setLngLat(marker.geometry.coordinates)
+      .addTo(map)
+      .setPopup(p)
+  });
+}
 
 export default function Map() {
   const [mapInstance, setMapInstance] = useState<null | maplibregl.Map>(null);
@@ -25,30 +50,11 @@ export default function Map() {
     setMapInstance(map);
 
 
-    // load initial points
     map.on('load', async () => {
-      console.info(map.getBounds())
-      const res = await fetch('/api/sunsets')
-      const data = await res.json();
-
-      // // Add an image to use as a custom marker
-      data.features.forEach((marker: any) => {
-        // popup for marker
-        const popupNode = document.createElement('div');
-        const root = createRoot(popupNode);
-        root.render(<SunsetPopup id={marker.properties.id} />);
-
-        const p = new Popup().setDOMContent(popupNode);
-        // add marker to map
-        new maplibregl.Marker()
-          .setLngLat(marker.geometry.coordinates)
-          .addTo(map)
-          .setPopup(p)
-      });
+      loadPoints(map);
 
       // EVENT HANDLERS
       // adds event handler to create a popup on click
-
       map.on('click', (e) => {
         const target = e.originalEvent.target as Element;
         if (target.closest('.maplibregl-popup') || target.closest('.maplibregl-marker')) {
@@ -66,17 +72,12 @@ export default function Map() {
         setClickMarker(newMarker);
       })
 
-      // // Change the cursor to a pointer when the it enters a feature in the 'markers' layer.
-      // map.on('mouseenter', 'markers', () => {
-      //   map.getCanvas().style.cursor = 'pointer';
-      // });
-      //
-      // // Change it back to a pointer when it leaves.
-      // map.on('mouseleave', 'markers', () => {
-      //   map.getCanvas().style.cursor = '';
-      // });
-    })
+      map.on('moveend', () => {
+        const debouncedLoadPoints = debounce(loadPoints, 1000);
+        debouncedLoadPoints(map);
+      })
 
+    })
 
     return () => {
       if (clickMarkerRef.current) clickMarkerRef.current.remove();
