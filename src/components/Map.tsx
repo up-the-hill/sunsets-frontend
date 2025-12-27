@@ -6,9 +6,12 @@ import { useEffect, useRef, useState } from 'react';
 import UploadModal from './UploadModal';
 import SunsetPopup from './SunsetPopup';
 import { createRoot } from 'react-dom/client';
+import Debug from './Debug';
+
+const IS_DEV = import.meta.env.DEV; // replaced at build-time
 
 export default function Map() {
-  const mapRef = useRef<null | maplibregl.Map>(null);
+  const [mapInstance, setMapInstance] = useState<null | maplibregl.Map>(null);
   const clickMarkerRef = useRef<null | maplibregl.Marker>(null);
   const [clickMarker, setClickMarker] = useState<null | maplibregl.Marker>(null);
   const [displayUploadModal, setDisplayUploadModal] = useState(false);
@@ -19,12 +22,12 @@ export default function Map() {
       center: [151.2057, -33.8727],
       zoom: 12
     });
-    mapRef.current = map;
+    setMapInstance(map);
 
 
     // load initial points
     map.on('load', async () => {
-      // TODO
+      console.info(map.getBounds())
       const res = await fetch('/api/sunsets')
       const data = await res.json();
 
@@ -77,8 +80,7 @@ export default function Map() {
 
     return () => {
       if (clickMarkerRef.current) clickMarkerRef.current.remove();
-      if (mapRef.current) mapRef.current.remove();
-      mapRef.current = null;
+      map.remove();
     }
   }, [])
 
@@ -91,8 +93,10 @@ export default function Map() {
   }
 
   return (
-
     <div>
+      {IS_DEV && (
+        <Debug map={mapInstance}></Debug>
+      )}
       {
         clickMarker && (
           <button onClick={handleShowModal} className={css`
