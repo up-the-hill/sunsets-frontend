@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><style>
+    #light-icon {
+      display: inline;
+    }
+    #dark-icon {
+      display: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      #light-icon {
+        display: none;
+      }
+      #dark-icon {
+        display: inline;
+      }
+    }
+  </style><g id="light-icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><g><g transform="matrix(62.5,0,0,62.5,0,0)" style="filter: contrast(1) brightness(1)"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M1 12L15 12" stroke="black" stroke-linecap="round"></path>
+  <path d="M8 6V4" stroke="black"></path>
+  <path d="M2 6L3.5 7.5" stroke="black"></path>
+  <path d="M14 6L12.5 7.5" stroke="black"></path>
+  <path d="M8 7C3 7 3 12 3 12H13C13 12 13 7 8 7Z" fill="#F76218" stroke="black"></path>
+</svg></svg></g></g></svg></g><g id="dark-icon"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="1000" height="1000"><g clip-path="url(#SvgjsClipPath1057)"><rect width="1000" height="1000" fill="#ffffff"></rect><g transform="matrix(43.75,0,0,43.75,150,150)"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M1 12L15 12" stroke="black" stroke-linecap="round"></path>
+  <path d="M8 6V4" stroke="black"></path>
+  <path d="M2 6L3.5 7.5" stroke="black"></path>
+  <path d="M14 6L12.5 7.5" stroke="black"></path>
+  <path d="M8 7C3 7 3 12 3 12H13C13 12 13 7 8 7Z" fill="#F76218" stroke="black"></path>
+</svg></svg></g></g><defs><clipPath id="SvgjsClipPath1057"><rect width="1000" height="1000" x="0" y="0" rx="350" ry="350"></rect></clipPath></defs></svg></g></svg>
