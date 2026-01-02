@@ -113,6 +113,10 @@ export default function Map() {
             position: absolute;
             z-index: 999;
             right: 0;
+            padding-inline: 0.6rem;
+            padding-block: 0.2rem;
+            // padding: 0.2rem;
+            margin: 1rem;
           `}>Add Sunset Image Here</button>
         )
       }
