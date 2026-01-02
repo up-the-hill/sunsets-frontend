@@ -33,13 +33,18 @@ export default function Map() {
   useEffect(() => {
     const map = new maplibregl.Map({
       container: 'map', // container id
-      style: 'https://tiles.openfreemap.org/styles/liberty',
+      style: '/styles/sunset',
       center: [151.2057, -33.8727],
       zoom: 12
     });
     setMapInstance(map);
 
     map.on('load', async () => {
+      // map.setPaintProperty(
+      //   'water',
+      //   'fill-color',
+      //   '#540D6E'
+      // );
       map.addSource('sunsets', {
         type: 'geojson',
         data: {
@@ -98,7 +103,7 @@ export default function Map() {
           'circle-color': '#F76218',
           'circle-radius': 8,
           'circle-stroke-width': 1,
-          'circle-stroke-color': '#000'
+          'circle-stroke-color': '#1f271b'
         }
       });
 

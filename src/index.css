@@ -93,6 +93,14 @@ h6 {
   --primary-900: #311202;
   --primary-950: #220c01;
 
+  --blaze-orange: #f76218;
+  --indigo: #540d6e;
+  --golden-pollen: #ffd23f;
+  --honeydew: #f3fcf0;
+  --charcoal-brown: #1f271b;
+
+  color: var(--charcoal-brown);
+  background-color: var(--honeydew);
 
 }
 
