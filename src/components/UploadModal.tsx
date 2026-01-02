@@ -29,30 +29,56 @@ export default function UploadModal({ handleCloseModal, clickMarker }) {
         <p>Upload Sunset</p>
         <form onSubmit={async (e) => {
           e.preventDefault();
+
+          const input = fileRef.current;
+          const file = input!.files![0];
+
+          // API Call to get Presigned POST data
           const formData = new FormData();
           if (clickMarker) {
             const { lng, lat } = clickMarker.getLngLat();
             formData.append('longitude', lng.toPrecision(8));
             formData.append('latitude', lat.toPrecision(8));
           }
-          const clientUrlRes = await fetch('/api/sunsets', {
-            method: 'POST',
-            body: formData
-          });
-          const clientUrl = await clientUrlRes.text();
 
-          const input = fileRef.current;
-          const file = input!.files![0];
-          await fetch(clientUrl, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': file.type || 'application/octet-stream'
-            },
-            body: file
-          })
+          try {
+            const res = await fetch('/api/sunsets', {
+              method: 'POST',
+              body: formData
+            });
 
-          handleCloseModal();
-          alert("image uploaded!")
+            if (!res.ok) {
+              throw new Error('Failed to get upload parameters');
+            }
+
+            const { url, fields } = await res.json();
+
+            // Construct FormData for S3 upload
+            const s3FormData = new FormData();
+            Object.entries(fields).forEach(([key, value]) => {
+              s3FormData.append(key, value as string);
+            });
+            s3FormData.append('file', file);
+
+            // Upload to S3
+            const uploadRes = await fetch(url, {
+              method: 'POST',
+              body: s3FormData
+            });
+
+            if (!uploadRes.ok) {
+              if (uploadRes.status === 400 && (await uploadRes.text()).includes('EntityTooLarge')) {
+                throw new Error('File too large (max 5MB)');
+              }
+              throw new Error('Upload to S3 failed');
+            }
+
+            handleCloseModal();
+            alert("image uploaded!");
+          } catch (err) {
+            console.error(err);
+            alert(err instanceof Error ? err.message : "Upload failed");
+          }
         }}>
           <input ref={fileRef} type="file" id="sunset" name="sunset" accept="image/png, image/jpeg" required />
           <button>OK</button>
