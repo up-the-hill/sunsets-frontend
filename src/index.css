@@ -81,6 +81,19 @@ h6 {
 
 :root {
   font-family: sans-serif;
+  --primary-50: #feeee6;
+  --primary-100: #fddece;
+  --primary-200: #fbbc9d;
+  --primary-300: #fa9b6b;
+  --primary-400: #f8793a;
+  --primary-500: #f65809;
+  --primary-600: #c54607;
+  --primary-700: #943505;
+  --primary-800: #622304;
+  --primary-900: #311202;
+  --primary-950: #220c01;
+
+
 }
 
 /* a { */

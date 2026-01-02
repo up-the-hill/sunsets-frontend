@@ -1,5 +1,5 @@
 import { css } from '@linaria/core';
-import maplibregl, { Popup } from 'maplibre-gl';
+import maplibregl, { Popup, GeoJSONSource } from 'maplibre-gl';
 import { Marker } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef, useState } from 'react';
@@ -7,40 +7,29 @@ import UploadModal from './UploadModal';
 import SunsetPopup from './SunsetPopup';
 import { createRoot } from 'react-dom/client';
 import Debug from './Debug';
-// import debounce from 'lodash.debounce';
 
-const IS_DEV = import.meta.env.DEV; // replaced at build-time
+const IS_DEV = import.meta.env.DEV;
 
 async function loadPoints(map: maplibregl.Map) {
-  const res = await fetch(`/api/sunsets?centre=${map.getCenter().lng},${map.getCenter().lat}&zoom=${map.getZoom()}`)
-  const data = await res.json();
+  try {
+    const res = await fetch(`/api/sunsets`);
+    const data = await res.json();
 
-  // Add an image to use as a custom marker
-  data.features.forEach((marker: any) => {
-    // popup for marker
-    const popupNode = document.createElement('div');
-    const root = createRoot(popupNode);
-
-    const p = new Popup().setDOMContent(popupNode);
-
-    p.on('open', () => {
-      root.render(<SunsetPopup id={marker.properties.id} />);
-    });
-
-    // add marker to map
-    new maplibregl.Marker()
-      .setLngLat(marker.geometry.coordinates)
-      .addTo(map)
-      .setPopup(p)
-  });
+    const source = map.getSource('sunsets') as GeoJSONSource;
+    if (source) {
+      source.setData(data);
+    }
+  } catch (error) {
+    console.error("Failed to load points", error);
+  }
 }
 
 export default function Map() {
   const [mapInstance, setMapInstance] = useState<null | maplibregl.Map>(null);
-  // const [zoomTooLow, setZoomTooLow] = useState(false);
   const clickMarkerRef = useRef<null | maplibregl.Marker>(null);
   const [clickMarker, setClickMarker] = useState<null | maplibregl.Marker>(null);
   const [displayUploadModal, setDisplayUploadModal] = useState(false);
+
   useEffect(() => {
     const map = new maplibregl.Map({
       container: 'map', // container id
@@ -50,17 +39,137 @@ export default function Map() {
     });
     setMapInstance(map);
 
-
     map.on('load', async () => {
+      map.addSource('sunsets', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        },
+        cluster: true,
+        clusterMaxZoom: 14,
+        clusterRadius: 20
+      });
+
+      map.addLayer({
+        id: 'clusters',
+        type: 'circle',
+        source: 'sunsets',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': [
+            'step',
+            ['get', 'point_count'],
+            '#FA9B6B',
+            100,
+            '#FBBC9D',
+            750,
+            '#FDDECE'
+          ],
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            20,
+            100,
+            30,
+            750,
+            40
+          ]
+        }
+      });
+
+      map.addLayer({
+        id: 'cluster-count',
+        type: 'symbol',
+        source: 'sunsets',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': '{point_count_abbreviated}',
+          'text-size': 12
+        }
+      });
+
+      map.addLayer({
+        id: 'unclustered-point',
+        type: 'circle',
+        source: 'sunsets',
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': '#F76218',
+          'circle-radius': 8,
+          'circle-stroke-width': 1,
+          'circle-stroke-color': '#000'
+        }
+      });
+
+      // inspect a cluster on click
+      map.on('click', 'clusters', async (e) => {
+        const features = map.queryRenderedFeatures(e.point, {
+          layers: ['clusters']
+        });
+        const clusterId = features[0].properties.cluster_id;
+        const source = map.getSource('sunsets') as GeoJSONSource;
+
+        const zoom = await source.getClusterExpansionZoom(clusterId);
+        map.easeTo({
+          center: (features[0].geometry as any).coordinates,
+          zoom
+        });
+      });
+
+      map.on('click', 'unclustered-point', (e) => {
+        // Prevent map click handler from triggering
+        e.originalEvent.stopPropagation();
+
+        const coordinates = (e.features![0].geometry as any).coordinates.slice();
+        const id = e.features![0].properties.id;
+
+        // Ensure that if the map is zoomed out such that
+        // multiple copies of the feature are visible, the
+        // popup appears over the copy being pointed to.
+        // while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+        //   coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        // }
+
+        const popupNode = document.createElement('div');
+        const root = createRoot(popupNode);
+
+        new Popup()
+          .setLngLat(coordinates)
+          .setDOMContent(popupNode)
+          .addTo(map);
+
+        root.render(<SunsetPopup id={id} />);
+      });
+
+      map.on('mouseenter', 'clusters', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', 'clusters', () => {
+        map.getCanvas().style.cursor = '';
+      });
+      map.on('mouseenter', 'unclustered-point', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', 'unclustered-point', () => {
+        map.getCanvas().style.cursor = '';
+      });
+
+      // Load initial points
       loadPoints(map);
 
       // EVENT HANDLERS
-      // adds event handler to create a popup on click
+      // adds event handler to create a marker on click (for uploading)
       map.on('click', (e) => {
         const target = e.originalEvent.target as Element;
+        // Check if we clicked on a map control, existing popup, or our clustered layers
         if (target.closest('.maplibregl-popup') || target.closest('.maplibregl-marker')) {
           return;
         }
+
+        const features = map.queryRenderedFeatures(e.point, { layers: ['clusters', 'unclustered-point'] });
+        if (features.length > 0) return;
+
         if (clickMarkerRef.current) {
           clickMarkerRef.current.remove();
         }
@@ -72,17 +181,6 @@ export default function Map() {
         clickMarkerRef.current = newMarker;
         setClickMarker(newMarker);
       })
-
-      // map.on('moveend', () => {
-      //   const debouncedLoadPoints = debounce(loadPoints, 1000);
-      //   if (map.getZoom() > 5) {
-      //     debouncedLoadPoints(map);
-      //     setZoomTooLow(false)
-      //   } else {
-      //     setZoomTooLow(true)
-      //   }
-      // })
-
     })
 
     return () => {
@@ -104,9 +202,6 @@ export default function Map() {
       {IS_DEV && (
         <Debug map={mapInstance}></Debug>
       )}
-      {/* {zoomTooLow && ( */}
-      {/*   <div className={css`z-index: 999; position: absolute;`}>zoom in further to see points!</div> */}
-      {/* )} */}
       {
         clickMarker && (
           <button onClick={handleShowModal} className={css`
