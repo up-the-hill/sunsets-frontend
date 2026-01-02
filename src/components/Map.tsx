@@ -7,7 +7,7 @@ import UploadModal from './UploadModal';
 import SunsetPopup from './SunsetPopup';
 import { createRoot } from 'react-dom/client';
 import Debug from './Debug';
-import debounce from 'lodash.debounce';
+// import debounce from 'lodash.debounce';
 
 const IS_DEV = import.meta.env.DEV; // replaced at build-time
 
@@ -37,7 +37,7 @@ async function loadPoints(map: maplibregl.Map) {
 
 export default function Map() {
   const [mapInstance, setMapInstance] = useState<null | maplibregl.Map>(null);
-  const [zoomTooLow, setZoomTooLow] = useState(false);
+  // const [zoomTooLow, setZoomTooLow] = useState(false);
   const clickMarkerRef = useRef<null | maplibregl.Marker>(null);
   const [clickMarker, setClickMarker] = useState<null | maplibregl.Marker>(null);
   const [displayUploadModal, setDisplayUploadModal] = useState(false);
@@ -73,15 +73,15 @@ export default function Map() {
         setClickMarker(newMarker);
       })
 
-      map.on('moveend', () => {
-        const debouncedLoadPoints = debounce(loadPoints, 1000);
-        if (map.getZoom() > 5) {
-          debouncedLoadPoints(map);
-          setZoomTooLow(false)
-        } else {
-          setZoomTooLow(true)
-        }
-      })
+      // map.on('moveend', () => {
+      //   const debouncedLoadPoints = debounce(loadPoints, 1000);
+      //   if (map.getZoom() > 5) {
+      //     debouncedLoadPoints(map);
+      //     setZoomTooLow(false)
+      //   } else {
+      //     setZoomTooLow(true)
+      //   }
+      // })
 
     })
 
@@ -104,9 +104,9 @@ export default function Map() {
       {IS_DEV && (
         <Debug map={mapInstance}></Debug>
       )}
-      {zoomTooLow && (
-        <div className={css`z-index: 999; position: absolute;`}>zoom in further to see points!</div>
-      )}
+      {/* {zoomTooLow && ( */}
+      {/*   <div className={css`z-index: 999; position: absolute;`}>zoom in further to see points!</div> */}
+      {/* )} */}
       {
         clickMarker && (
           <button onClick={handleShowModal} className={css`
