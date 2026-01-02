@@ -122,7 +122,7 @@ export default function Map() {
         )
       }
       <div id="map" className={css`
-        height: 100%;
+        height: 100dvh;
       `}>
       </div>
     </div>

@@ -3,12 +3,14 @@ import Map from './components/Map';
 
 function App() {
   return (
-    <main className={css`
-      display: grid;
-      height: 100dvh;
-      grid-template-rows: 5fr 95fr;
-    `}>
-      <h1>sunsets</h1>
+    <main>
+      <h1 className={css`
+        position: fixed;
+        z-index: 999;
+        margin: 1rem;
+        line-height: 1em;
+        // -webkit-text-stroke: 1px white;
+      `}>sunsets on a map</h1>
       <Map />
     </main>
   )

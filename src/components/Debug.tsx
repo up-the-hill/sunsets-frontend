@@ -55,8 +55,10 @@ export default function Debug({ map }: DebugProps) {
     <div className={css`
       position: absolute;
       z-index: 999;
+      bottom: 0;
       background-color: white;
       border: 4px double black;
+      margin: 1rem;
       padding: 0.5em;
     `}>
       <p>Center: {center.lng.toFixed(6)}, {center.lat.toFixed(6)}</p>
