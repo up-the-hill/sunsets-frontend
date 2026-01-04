@@ -12,6 +12,7 @@
   "dependencies": {
     "@linaria/core": "^6.3.0",
     "@linaria/react": "^6.3.0",
+    "@stadiamaps/maplibre-search-box": "^3.1.0",
     "@wyw-in-js/babel-preset": "^0.8.0",
     "lodash.debounce": "^4.0.8",
     "maplibre-gl": "^5.15.0",

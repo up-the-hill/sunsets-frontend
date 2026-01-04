@@ -1,12 +1,18 @@
 import { css } from '@linaria/core';
-import maplibregl, { Popup, GeoJSONSource } from 'maplibre-gl';
-import { Marker } from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
 import { useEffect, useRef, useState } from 'react';
 import UploadModal from './UploadModal';
 import SunsetPopup from './SunsetPopup';
 import { createRoot } from 'react-dom/client';
 import Debug from './Debug';
+
+// maplibregl-js
+import maplibregl, { Popup, GeoJSONSource } from 'maplibre-gl';
+import { Marker } from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
+
+// stadia maps search
+import { MapLibreSearchControl } from "@stadiamaps/maplibre-search-box";
+import "./maplibre-search-box.css";
 
 const IS_DEV = import.meta.env.DEV;
 
@@ -39,12 +45,17 @@ export default function Map() {
     });
     setMapInstance(map);
 
+    const control = new MapLibreSearchControl({
+      onResultSelected: feature => {
+        // You can add code here to take some action when a result is selected.
+        console.log(feature.geometry.coordinates);
+      },
+      // You can also use our EU endpoint to keep traffic within the EU using the basePath option:
+      // baseUrl: "https://api-eu.stadiamaps.com",
+    });
+
     map.on('load', async () => {
-      // map.setPaintProperty(
-      //   'water',
-      //   'fill-color',
-      //   '#540D6E'
-      // );
+      map.addControl(control, "top-left");
       map.addSource('sunsets', {
         type: 'geojson',
         data: {
@@ -217,7 +228,7 @@ export default function Map() {
             padding-block: 0.2rem;
             // padding: 0.2rem;
             margin: 1rem;
-          `}>Add Sunset Image Here</button>
+          `}>+</button>
         )
       }
       {
