@@ -1,8 +1,78 @@
 import { css } from '@linaria/core';
-import { useRef } from 'react';
+import { useRef, type FormEvent } from 'react';
+import Compressor from 'compressorjs';
 
 export default function UploadModal({ handleCloseModal, clickMarker }) {
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+
+    const input = fileRef.current;
+    const file = input!.files![0];
+
+    // API Call to get Presigned POST data
+    const formData = new FormData();
+    if (clickMarker) {
+      const { lng, lat } = clickMarker.getLngLat();
+      formData.append('longitude', lng.toPrecision(8));
+      formData.append('latitude', lat.toPrecision(8));
+    }
+
+    try {
+      const res = await fetch('/api/sunsets', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to get upload parameters');
+      }
+
+      const { url, fields } = await res.json();
+
+
+      new Compressor(file, {
+        quality: 0.7,
+        maxWidth: 1080,
+
+        // The compression process is asynchronous,
+        // which means you have to access the `result` in the `success` hook function.
+        async success(result) {
+          // Construct FormData for S3 upload
+          const s3FormData = new FormData();
+          Object.entries(fields).forEach(([key, value]) => {
+            s3FormData.append(key, value as string);
+          });
+          s3FormData.append('file', result);
+
+          // Upload to S3
+          const uploadRes = await fetch(url, {
+            method: 'POST',
+            body: s3FormData
+          });
+
+          if (!uploadRes.ok) {
+            if (uploadRes.status === 400 && (await uploadRes.text()).includes('EntityTooLarge')) {
+              alert("filesize too large!");
+              throw new Error('File too large (max 5MB)');
+            }
+            alert("upload failed!");
+            throw new Error('Upload to S3 failed');
+          } else {
+            alert("image uploaded!");
+          }
+          handleCloseModal();
+        },
+        error(err) {
+          console.log(err.message);
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : "Upload failed");
+    }
+  }
+
   return (
     <div
       onClick={handleCloseModal}
@@ -27,59 +97,7 @@ export default function UploadModal({ handleCloseModal, clickMarker }) {
             `}>
         <button onClick={handleCloseModal} className={css`float:right;`}>&#10005;</button>
         <p>Upload Sunset</p>
-        <form onSubmit={async (e) => {
-          e.preventDefault();
-
-          const input = fileRef.current;
-          const file = input!.files![0];
-
-          // API Call to get Presigned POST data
-          const formData = new FormData();
-          if (clickMarker) {
-            const { lng, lat } = clickMarker.getLngLat();
-            formData.append('longitude', lng.toPrecision(8));
-            formData.append('latitude', lat.toPrecision(8));
-          }
-
-          try {
-            const res = await fetch('/api/sunsets', {
-              method: 'POST',
-              body: formData
-            });
-
-            if (!res.ok) {
-              throw new Error('Failed to get upload parameters');
-            }
-
-            const { url, fields } = await res.json();
-
-            // Construct FormData for S3 upload
-            const s3FormData = new FormData();
-            Object.entries(fields).forEach(([key, value]) => {
-              s3FormData.append(key, value as string);
-            });
-            s3FormData.append('file', file);
-
-            // Upload to S3
-            const uploadRes = await fetch(url, {
-              method: 'POST',
-              body: s3FormData
-            });
-
-            if (!uploadRes.ok) {
-              if (uploadRes.status === 400 && (await uploadRes.text()).includes('EntityTooLarge')) {
-                throw new Error('File too large (max 5MB)');
-              }
-              throw new Error('Upload to S3 failed');
-            }
-
-            handleCloseModal();
-            alert("image uploaded!");
-          } catch (err) {
-            console.error(err);
-            alert(err instanceof Error ? err.message : "Upload failed");
-          }
-        }}>
+        <form onSubmit={handleSubmit}>
           <input ref={fileRef} type="file" id="sunset" name="sunset" accept="image/png, image/jpeg" required />
           <button>OK</button>
         </form>
