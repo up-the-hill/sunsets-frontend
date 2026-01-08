@@ -1,12 +1,15 @@
 import { css } from '@linaria/core';
-import { useRef, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import Compressor from 'compressorjs';
+import Spinner from './Spinner';
 
 export default function UploadModal({ handleCloseModal, clickMarker }) {
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setUploading(true)
 
     const input = fileRef.current;
     const file = input!.files![0];
@@ -35,8 +38,10 @@ export default function UploadModal({ handleCloseModal, clickMarker }) {
           if (!res.ok) {
             if (res.status === 400 && (await res.text()) == 'ImageNotSunset') {
               // alert("Image not Sunset!");
+              handleCloseModal()
               throw new Error('Image not Sunset!');
             }
+            handleCloseModal()
             throw new Error('Failed to get upload parameters');
           }
 
@@ -117,6 +122,9 @@ export default function UploadModal({ handleCloseModal, clickMarker }) {
         <form onSubmit={handleSubmit}>
           <input ref={fileRef} type="file" id="sunset" name="sunset" accept="image/png, image/jpeg" required />
           <button>OK</button>
+          {uploading && (
+            <Spinner />
+          )}
         </form>
       </div>
     </div>
