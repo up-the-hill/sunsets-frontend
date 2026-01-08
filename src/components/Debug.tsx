@@ -67,7 +67,7 @@ export default function Debug({ map }: DebugProps) {
         <summary>Bounds</summary>
         <p>sw: {bounds?._sw.toString() ?? 'loading'}</p>
         <p>ne: {bounds?._ne.toString() ?? 'loading'}</p>
-        <p>distance: {getDistanceFromLatLonInKm(bounds._ne, bounds._sw)} km</p>
+        <p>distance: {getDistanceFromLatLonInKm(bounds!._ne, bounds!._sw)} km</p>
       </details>
     </div>
   )

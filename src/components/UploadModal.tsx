@@ -2,8 +2,14 @@ import { css } from '@linaria/core';
 import { useRef, useState, type FormEvent } from 'react';
 import Compressor from 'compressorjs';
 import Spinner from './Spinner';
+import type { Marker } from 'maplibre-gl';
 
-export default function UploadModal({ handleCloseModal, clickMarker }) {
+interface UploadModalProps {
+  handleCloseModal: () => void;
+  clickMarker: Marker | null;
+}
+
+export default function UploadModal({ handleCloseModal, clickMarker }: UploadModalProps) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
 
